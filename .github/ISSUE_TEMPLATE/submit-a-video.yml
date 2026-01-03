@@ -1,0 +1,68 @@
+name: Submit a video
+description: Add a video/tutorial to the Tutorielle library
+title: "[VREQ] "
+labels: ["Video Request"]
+
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Video URL
+      description: Paste the full link to the tutorial video
+      placeholder: https://www.youtube.com/watch?v=...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: platform
+    attributes:
+      label: Platform
+      description: Select the platform where this video is hosted
+      options:
+        - label: YouTube
+        - label: Vimeo
+        - label: MP4 (direct video file)
+        - label: Other
+    validations:
+      required: true
+
+  - type: input
+    id: tags
+    attributes:
+      label: Tags
+      description: Comma-separated tags used for searching in Tutorielle
+      placeholder: blender, game dev, 3d modelling, rendering
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (optional)
+      description: Briefly describe what this tutorial covers
+      placeholder: This tutorial explains how to rig a mannequin in Blender for game development.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: level
+    attributes:
+      label: Skill Level
+      description: What skill level is this tutorial aimed at?
+      options:
+        - Beginner
+        - Intermediate
+        - Advanced
+        - All levels
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Submission checklist
+      options:
+        - label: The link works and is publicly accessible
+          required: true
+        - label: The video is educational/tutorial content
+          required: true
