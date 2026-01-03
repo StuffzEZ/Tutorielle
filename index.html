@@ -149,70 +149,70 @@
     Tutorielle • Dark‑mode YouTube tutorial library
   </footer>
 
-  <script>
-    // Load videos from external JSON file
-    let videos = [];
+<script>
+  const grid = document.getElementById('videoGrid');
+  const searchInput = document.getElementById('searchInput');
+  const emptyState = document.getElementById('emptyState');
 
-    async function loadVideos() {
-      try {
-        const res = await fetch('https://stuffzez.github.io/Tutorielle/videos.json');
-        videos = await res.json();
-        loadVideos();
-      } catch (err) {
-        console.error('Failed to load videos.json', err);
-        emptyState.style.display = 'block';
-        emptyState.textContent = 'Failed to load video library.';
-      }
+  let videos = [];
+
+  async function loadVideos() {
+    try {
+      const res = await fetch('https://stuffzez.github.io/Tutorielle/videos.json');
+      videos = await res.json();
+      renderVideos(); // ✅ render after load
+    } catch (err) {
+      console.error('Failed to load videos.json', err);
+      emptyState.style.display = 'block';
+      emptyState.textContent = 'Failed to load video library.';
+    }
+  }
+
+  function getYouTubeId(url) {
+    const match = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
+    return match ? match[1] : null;
+  }
+
+  function renderVideos(filter = "") {
+    grid.innerHTML = "";
+    const query = filter.toLowerCase();
+
+    const filtered = videos.filter(v =>
+      v.tags.toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    } else {
+      emptyState.style.display = 'none';
     }
 
-    const grid = document.getElementById('videoGrid');
-    const searchInput = document.getElementById('searchInput');
-    const emptyState = document.getElementById('emptyState');
+    filtered.forEach(video => {
+      const id = getYouTubeId(video.link);
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.onclick = () => window.open(video.link, '_blank');
 
-    function getYouTubeId(url) {
-      const match = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
-      return match ? match[1] : null;
-    }
+      card.innerHTML = `
+        <div class="thumb">
+          ${id ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg">` : ''}
+        </div>
+        <div class="tags">
+          ${video.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('')}
+        </div>
+      `;
 
-    function renderVideos(filter = "") {
-      grid.innerHTML = "";
-      const query = filter.toLowerCase();
-
-      const filtered = videos.filter(v =>
-        v.tags.toLowerCase().includes(query)
-      );
-
-      if (filtered.length === 0) {
-        emptyState.style.display = 'block';
-        return;
-      } else {
-        emptyState.style.display = 'none';
-      }
-
-      filtered.forEach(video => {
-        const id = getYouTubeId(video.link);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => window.open(video.link, '_blank');
-
-        card.innerHTML = `
-          <div class="thumb">
-            ${id ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg" />` : ''}
-          </div>
-          <div class="tags">
-            ${video.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('')}
-          </div>
-        `;
-
-        grid.appendChild(card);
-      });
-    }
-
-    searchInput.addEventListener('input', e => {
-      renderVideos(e.target.value);
+      grid.appendChild(card);
     });
+  }
 
-    renderVideos();
-  </script>
+  searchInput.addEventListener('input', e => {
+    renderVideos(e.target.value);
+  });
+
+  // ✅ Start everything
+  loadVideos();
+</script>
 </body>
 </html>
