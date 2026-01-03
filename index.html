@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorielle</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --text: #e6e6eb;
+      --muted: #9aa0aa;
+      --accent: #7c8cff;
+      --border: #242836;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #121522, #0f1115);
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 2rem;
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #0b0d14;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      background: #1f2435;
+      border-radius: 999px;
+      color: var(--muted);
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 60px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tutorielle</h1>
+    <p>Browse and search a library of YouTube tutorials</p>
+  </header>
+
+  <main>
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Search by tag (e.g. blender, editing, rendering…)" />
+    </div>
+
+    <div id="videoGrid" class="grid"></div>
+    <div id="emptyState" class="empty" style="display:none;">No tutorials found.</div>
+  </main>
+
+  <footer>
+    Tutorielle • Dark‑mode YouTube tutorial library
+  </footer>
+
+  <script>
+    // Load videos from external JSON file
+    let videos = [];
+
+    async function loadVideos() {
+      try {
+        const res = await fetch('videos.json');
+        videos = await res.json();
+        loadVideos();
+      } catch (err) {
+        console.error('Failed to load videos.json', err);
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'Failed to load video library.';
+      }
+    }
+
+    const grid = document.getElementById('videoGrid');
+    const searchInput = document.getElementById('searchInput');
+    const emptyState = document.getElementById('emptyState');
+
+    function getYouTubeId(url) {
+      const match = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
+      return match ? match[1] : null;
+    }
+
+    function renderVideos(filter = "") {
+      grid.innerHTML = "";
+      const query = filter.toLowerCase();
+
+      const filtered = videos.filter(v =>
+        v.tags.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      } else {
+        emptyState.style.display = 'none';
+      }
+
+      filtered.forEach(video => {
+        const id = getYouTubeId(video.link);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => window.open(video.link, '_blank');
+
+        card.innerHTML = `
+          <div class="thumb">
+            ${id ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg" />` : ''}
+          </div>
+          <div class="tags">
+            ${video.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('')}
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    searchInput.addEventListener('input', e => {
+      renderVideos(e.target.value);
+    });
+
+    renderVideos();
+  </script>
+</body>
+</html>
