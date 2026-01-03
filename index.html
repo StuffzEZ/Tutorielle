@@ -155,7 +155,7 @@
 
     async function loadVideos() {
       try {
-        const res = await fetch('videos.json');
+        const res = await fetch('https://stuffzez.github.io/Tutorielle/videos.json');
         videos = await res.json();
         loadVideos();
       } catch (err) {
