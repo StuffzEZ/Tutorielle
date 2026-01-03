@@ -149,101 +149,83 @@
     Tutorielle • Dark‑mode YouTube tutorial library
   </footer>
 
-  <script>
-    // Load videos from external JSON file
-    let videos = [];
+<script>
+const grid = document.getElementById('videoGrid');
+const searchInput = document.getElementById('searchInput');
+const emptyState = document.getElementById('emptyState');
 
-    async function loadVideos() {
-      try {
-        const res = await fetch('videos.json');
-        videos = await res.json();
-        loadVideos();
-      } catch (err) {
-        console.error('Failed to load videos.json', err);
-        emptyState.style.display = 'block';
-        emptyState.textContent = 'Failed to load video library.';
-      }
-    }
+let videos = [];
 
-    const grid = document.getElementById('videoGrid');
-    const searchInput = document.getElementById('searchInput');
-    const emptyState = document.getElementById('emptyState');
+// Load videos from JSON
+async function loadVideos() {
+  try {
+    const res = await fetch('https://stuffzez.github.io/Tutorielle/videos.json');
+    videos = await res.json();
+    await renderVideos(); // ✅ await the async function
+  } catch (err) {
+    console.error('Failed to load videos.json', err);
+    emptyState.style.display = 'block';
+    emptyState.textContent = 'Failed to load video library.';
+  }
+}
 
-    function getYouTubeId(url) {
-      const match = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
-      return match ? match[1] : null;
-    }
+// Extract YouTube ID
+function getYouTubeId(url) {
+  const match = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
+  return match ? match[1] : null;
+}
 
-    async function renderVideos(filter = "") {
-    grid.innerHTML = "";
-    const query = filter.toLowerCase();
+// Render videos (async because we fetch titles)
+async function renderVideos(filter = "") {
+  grid.innerHTML = "";
+  const query = filter.toLowerCase();
 
-    const filtered = videos.filter(v =>
-      v.tags.toLowerCase().includes(query)
-    );
+  const filtered = videos.filter(v => v.tags.toLowerCase().includes(query));
 
-    if (filtered.length === 0) {
-      emptyState.style.display = 'block';
-      return;
-    } else {
-      emptyState.style.display = 'none';
-    }
-
-    for (const video of filtered) {
-      const id = getYouTubeId(video.link);
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.onclick = () => window.open(video.link, '_blank');
-
-      let title = 'Loading title…';
-      try {
-        const oembed = await fetch(`https://www.youtube.com/oembed?url=${video.link}&format=json`);
-        const data = await oembed.json();
-        title = data.title;
-      } catch (e) {
-        title = 'Untitled Video';
-      }
-
-      card.innerHTML = `
-        <div class="thumb">
-          ${id ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg">` : ''}
-        </div>
-        <h3 style="margin:8px 0 10px 0;font-size:1rem;color:var(--text);">${title}</h3>
-        <div class="tags">
-          ${video.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('')}
-        </div>
-      `;
-
-      grid.appendChild(card);
-    }
+  if (filtered.length === 0) {
+    emptyState.style.display = 'block';
+    return;
   } else {
-        emptyState.style.display = 'none';
-      }
+    emptyState.style.display = 'none';
+  }
 
-      filtered.forEach(video => {
-        const id = getYouTubeId(video.link);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => window.open(video.link, '_blank');
+  // Loop through each video
+  for (const video of filtered) {
+    const id = getYouTubeId(video.link);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.onclick = () => window.open(video.link, '_blank');
 
-        card.innerHTML = `
-          <div class="thumb">
-            ${id ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg" />` : ''}
-          </div>
-          <div class="tags">
-            ${video.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('')}
-          </div>
-        `;
-
-        grid.appendChild(card);
-      });
+    let title = 'Loading title…';
+    try {
+      const oembed = await fetch(`https://www.youtube.com/oembed?url=${video.link}&format=json`);
+      const data = await oembed.json();
+      title = data.title;
+    } catch (e) {
+      title = 'Untitled Video';
     }
 
-    searchInput.addEventListener('input', e => {
-      renderVideos(e.target.value);
-    });
+    card.innerHTML = `
+      <div class="thumb">
+        ${id ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg">` : ''}
+      </div>
+      <h3 style="margin:8px 0 10px 0;font-size:1rem;color:var(--text);">${title}</h3>
+      <div class="tags">
+        ${video.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('')}
+      </div>
+    `;
 
-    renderVideos();
-  </script>
+    grid.appendChild(card);
+  }
+}
+
+// Search input
+searchInput.addEventListener('input', async e => {
+  await renderVideos(e.target.value);
+});
+
+// Start
+loadVideos();
+</script>
 </body>
 </html>
